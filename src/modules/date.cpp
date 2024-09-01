@@ -91,24 +91,24 @@ namespace modules {
     return true;
   }
 
-bool date_module::build(builder* builder, const string& tag) const {
-  if (tag == TAG_LABEL) {
-    if (!m_dateformat_alt.empty() || !m_timeformat_alt.empty()) {
-      builder->action(mousebtn::LEFT, *this, EVENT_TOGGLE, "", m_label);
+  bool date_module::build(builder* builder, const string& tag) const {
+    if (tag == TAG_LABEL) {
+      if (!m_dateformat_alt.empty() || !m_timeformat_alt.empty()) {
+        builder->action(mousebtn::LEFT, *this, EVENT_TOGGLE, "", m_label);
+      } else {
+        builder->node(m_label);
+      }
     } else {
-      builder->node(m_label);
+      return false;
     }
-  } else {
-    return false;
+
+    return true;
   }
 
-  return true;
-}
-
-void date_module::action_toggle() {
-  m_toggled = !m_toggled;
-  wakeup();
-}
+  void date_module::action_toggle() {
+    m_toggled = !m_toggled;
+    wakeup();
+  }
 } // namespace modules
 
 POLYBAR_NS_END
