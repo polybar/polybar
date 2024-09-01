@@ -3,6 +3,7 @@
 #include "common.hpp"
 
 #include <array>
+#include <cstdint>
 
 POLYBAR_NS
 

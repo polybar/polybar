@@ -1,6 +1,7 @@
 #include "utils/color.hpp"
 
 #include <algorithm>
+#include <cstdint>
 
 POLYBAR_NS
 
