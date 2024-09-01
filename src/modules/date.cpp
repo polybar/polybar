@@ -6,6 +6,8 @@
 POLYBAR_NS
 
 namespace modules {
+  std::mutex date_module::tz_mutex;
+
   template class module<date_module>;
 
   date_module::date_module(const bar_settings& bar, string name_, const config& config)
@@ -44,6 +46,9 @@ namespace modules {
 
   bool date_module::update() {
     auto time = std::time(nullptr);
+
+    // Lock the mutex to prevent other threads from modifying TZ
+    std::lock_guard<std::mutex> lock(tz_mutex);
 
     const char* old_tz = getenv("TZ");
 

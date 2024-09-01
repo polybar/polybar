@@ -31,6 +31,8 @@ namespace modules {
     // @deprecated: Use <label>
     static constexpr auto TAG_DATE = "<date>";
 
+    static std::mutex tz_mutex;
+
     label_t m_label;
 
     string m_dateformat;
