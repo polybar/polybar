@@ -5,6 +5,8 @@
 #include "errors.hpp"
 #include "ipc/msg.hpp"
 
+#include <cstdint>
+
 POLYBAR_NS
 
 namespace ipc {
