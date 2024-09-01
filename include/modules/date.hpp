@@ -41,6 +41,8 @@ namespace modules {
     string m_date;
     string m_time;
 
+    string m_timezone;
+
     // Single stringstream to be used to gather the results of std::put_time
     std::stringstream datetime_stream;
 
