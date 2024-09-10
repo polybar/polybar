@@ -18,7 +18,13 @@ execute_process(COMMAND git rev-parse --show-toplevel
 # Set fallback first, override if more information (from git) is found
 set(APP_VERSION "${version_txt}")
 
-if(git_top_dir_result EQUAL "0" AND git_top_dir STREQUAL PROJECT_SOURCE_DIR)
+# Prevent formatting errors & resolve symlinks (REALPATH)
+get_filename_component(resolved_project_source_dir ${PROJECT_SOURCE_DIR} REALPATH)
+if(NOT ("${git_top_dir}" STREQUAL ""))
+  get_filename_component(git_top_dir ${git_top_dir} REALPATH)
+endif()
+
+if(git_top_dir_result EQUAL "0" AND git_top_dir STREQUAL resolved_project_source_dir)
   # If we are in a git repo we can get the version information from git describe
   execute_process(COMMAND git describe --tags --dirty=-dev
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
