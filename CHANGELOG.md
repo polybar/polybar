@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - An option `unmute-on-scroll` for `internal/pulseaudio` and `internal/alsa` to unmute audio when the user scrolls on the widget.
+- Added support for ephemeral network interfaces, with rudimentary wireguard support ([`#1164`](https://github.com/polybar/polybar/issues/1164), [`#1531`](https://github.com/polybar/polybar/issues/1531), [`#2980`](https://github.com/polybar/polybar/pull/2980)) by [@Swivelgames](https://github.com/Swivelgames).
 
 ## [3.7.2] - 2024-08-17
 ### Fixed
