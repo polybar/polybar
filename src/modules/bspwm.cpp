@@ -378,6 +378,9 @@ namespace modules {
         label->replace_token("%icon%", icon->get());
         label->replace_token("%index%", to_string(++workspace_n));
 
+        if (tag[0] == 'f' && label->get().empty()){
+          continue;
+        }
         m_monitors.back()->workspaces.emplace_back(workspace_mask, move(label));
       }
 
