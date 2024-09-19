@@ -339,6 +339,11 @@ bool controller::try_forward_legacy_action(const string& cmd) {
     A_MAP("voldown", alsa_module, EVENT_DEC),
     A_MAP("volmute", alsa_module, EVENT_TOGGLE),
 #endif
+#if ENABLE_OSS
+    A_MAP("volup", oss_module, EVENT_INC),
+    A_MAP("voldown", oss_module, EVENT_DEC),
+    A_MAP("volmute", oss_module, EVENT_TOGGLE),
+#endif
 #if ENABLE_PULSEAUDIO
     A_MAP("pa_volup", pulseaudio_module, EVENT_INC),
     A_MAP("pa_voldown", pulseaudio_module, EVENT_DEC),

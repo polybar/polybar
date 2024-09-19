@@ -19,6 +19,7 @@ namespace modules {
   static constexpr const char MEMORY_TYPE[] = "internal/memory";
   static constexpr const char MPD_TYPE[] = "internal/mpd";
   static constexpr const char NETWORK_TYPE[] = "internal/network";
+  static constexpr const char OSS_TYPE[] = "internal/oss";
   static constexpr const char PULSEAUDIO_TYPE[] = "internal/pulseaudio";
   static constexpr const char TEMPERATURE_TYPE[] = "internal/temperature";
   static constexpr const char TRAY_TYPE[] = "internal/tray";
