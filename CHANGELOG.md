@@ -22,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `custom/ipc`: Module would display the literal `%output%` token before the initial hook finished executing ([`#3131`](https://github.com/polybar/polybar/issues/3131), [`#3140`](https://github.com/polybar/polybar/pull/3140))
 - renderer: Pseudo-transparency rendering artifacts when wallpaper does not fill entire screen ([`#3096`](https://github.com/polybar/polybar/pull/3096), [`#3041`](https://github.com/polybar/polybar/issues/3041))
 
+### Changed
+- When the `-r` flag is provided, and RandR reports zero connected active screens, Polybar will not restart. This fixes Polybar dying on some laptops when the lid is closed. [`#3078`](https://github.com/polybar/polybar/pull/3078).
+
 ## [3.7.1] - 2023-11-27
 ### Build
 - Fixed missing header when using `libc++` in clang 15 and below

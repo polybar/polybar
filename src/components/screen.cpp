@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <csignal>
 #include <thread>
+#include <utility>
 
 #include "components/config.hpp"
 #include "components/logger.hpp"
@@ -101,13 +102,16 @@ void screen::handle(const evt::randr_screen_change_notify& evt) {
 
   m_connection.reset_screen();
   auto screen = m_connection.screen();
-  auto changed = false;
 
-  // We need to reload if the screen size changed as well
+  auto [changed, num_monitors] = have_monitors_changed();
+  if (num_monitors == 0) {
+    m_log.notice("randr_screen_change_notify got 0 connected screens, ignoring event");
+    return;
+  }
+
+  // We need to reload if the screen size changed as well, not just if screens were added/removed.
   if (screen->width_in_pixels != m_size.w || screen->height_in_pixels != m_size.h) {
     changed = true;
-  } else {
-    changed = have_monitors_changed();
   }
 
   if (changed) {
@@ -120,13 +124,14 @@ void screen::handle(const evt::randr_screen_change_notify& evt) {
 /**
  * Checks if the stored monitor list is different from a newly fetched one
  *
- * Fetches the monitor list and compares it with the one stored
+ * Fetches the monitor list and compares it with the one stored. Returns
+ * true if the list of monitors has changed. Also returns the number of monitors.
  */
-bool screen::have_monitors_changed() const {
+std::pair<bool, int> screen::have_monitors_changed() const {
   auto monitors = randr_util::get_monitors(m_connection, true, false);
 
   if (monitors.size() != m_monitors.size()) {
-    return true;
+    return std::make_pair(true, monitors.size());
   }
 
   for (auto m : m_monitors) {
@@ -139,11 +144,11 @@ bool screen::have_monitors_changed() const {
      * the same size
      */
     if (it == monitors.end()) {
-      return true;
+      return std::make_pair(true, monitors.size());
     }
   }
 
-  return false;
+  return std::make_pair(false, monitors.size());
 }
 
 POLYBAR_NS_END
