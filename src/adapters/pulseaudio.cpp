@@ -195,18 +195,29 @@ void pulseaudio::set_volume(float percentage) {
 void pulseaudio::inc_volume(int delta_perc) {
   pa_threaded_mainloop_lock(m_mainloop);
   pa_volume_t vol = math_util::percentage_to_value<pa_volume_t>(abs(delta_perc), PA_VOLUME_NORM);
+
   if (delta_perc > 0) {
-    pa_volume_t current = pa_cvolume_max(&cv);
-    if (current + vol <= m_max_volume) {
-      pa_cvolume_inc(&cv, vol);
-    } else if (current < m_max_volume) {
-      // avoid rounding errors and set to m_max_volume directly
-      pa_cvolume_scale(&cv, m_max_volume);
-    } else {
-      m_log.notice("pulseaudio: maximum volume reached");
+    for (int i = 0; i < cv.channels; i++) {
+      if (cv.values[i] + vol <= m_max_volume) {
+        cv.values[i] += vol;
+      } else if (cv.values[i] < m_max_volume) {
+        cv.values[i] = m_max_volume;
+      } else {
+        m_log.notice("pulseaudio: maximum volume reached on channel %d", i);
+      }
     }
-  } else
-    pa_cvolume_dec(&cv, vol);
+  } else {
+    for (int i = 0; i < cv.channels; i++) {
+      if (cv.values[i] > vol) {
+        cv.values[i] -= vol;
+      } else if (cv.values[i] > 0) {
+        cv.values[i] = 0;
+      } else {
+        m_log.notice("pulseaudio: minimum volume reached on channel %d", i);
+      }
+    }
+  }
+
   pa_operation* op = pa_context_set_sink_volume_by_index(m_context, m_index, &cv, simple_callback, this);
   wait_loop(op, m_mainloop);
   if (!success)
