@@ -39,12 +39,16 @@ namespace modules {
     static constexpr auto FORMAT_MUTED = "format-muted";
 
     static constexpr auto TAG_RAMP_VOLUME = "<ramp-volume>";
+    static constexpr auto TAG_RAMP_MUTED = "<ramp-muted>";
     static constexpr auto TAG_BAR_VOLUME = "<bar-volume>";
+    static constexpr auto TAG_BAR_MUTED = "<bar-muted>";
     static constexpr auto TAG_LABEL_VOLUME = "<label-volume>";
     static constexpr auto TAG_LABEL_MUTED = "<label-muted>";
 
     progressbar_t m_bar_volume;
+    progressbar_t m_bar_muted;
     ramp_t m_ramp_volume;
+    ramp_t m_ramp_muted;
     label_t m_label_volume;
     label_t m_label_muted;
 
