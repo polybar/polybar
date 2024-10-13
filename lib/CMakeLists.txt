@@ -36,3 +36,13 @@ if(ENABLE_I3)
 endif()
 
 # }}}
+# Library: sol2 {{{
+
+# if(ENABLE_LUA)
+add_library(sol2 INTERFACE)
+target_include_directories(sol2 INTERFACE ${PROJECT_SOURCE_DIR}/lib/sol2)
+target_link_libraries(sol2 INTERFACE lua)
+target_compile_definitions(sol2 INTERFACE SOL_ALL_SAFETIES_ON=1)
+# endif()
+
+# }}}
