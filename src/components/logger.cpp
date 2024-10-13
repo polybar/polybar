@@ -1,7 +1,6 @@
 #include "components/logger.hpp"
-
 #include <unistd.h>
-
+#include <sstream>
 #include "errors.hpp"
 #include "settings.hpp"
 #include "utils/concurrency.hpp"
@@ -11,35 +10,33 @@
 POLYBAR_NS
 
 /**
- * Convert string
+ * Convert string to string_view for safety and modern C++ style.
  */
-const char* logger::convert(string& arg) const {
-  return arg.c_str();
-}
-
-const char* logger::convert(const string& arg) const {
-  return arg.c_str();
+std::string_view logger::convert(const std::string& arg) const {
+  return arg;
 }
 
 /**
- * Convert thread id
+ * Convert thread ID to string for portability.
  */
-size_t logger::convert(const std::thread::id arg) const {
-  return concurrency_util::thread_id(arg);
+std::string logger::convert(const std::thread::id arg) const {
+  std::ostringstream oss;
+  oss << arg;
+  return oss.str();
 }
 
 /**
- * Create instance
+ * Create instance of logger using singleton pattern.
  */
 logger::make_type logger::make(loglevel level) {
   return *factory_util::singleton<std::remove_reference_t<logger::make_type>>(level);
 }
 
 /**
- * Construct logger
+ * Logger constructor.
  */
 logger::logger(loglevel level) : m_level(level) {
-  // clang-format off
+  // Ensure m_fd is initialized before using isatty
   if (isatty(m_fd)) {
     m_prefixes[loglevel::TRACE]   = "\r\033[0;32m- \033[0m";
     m_prefixes[loglevel::INFO]    = "\r\033[1;32m* \033[0m";
@@ -52,49 +49,43 @@ logger::logger(loglevel level) : m_level(level) {
     m_suffixes[loglevel::WARNING] = "\033[0m";
     m_suffixes[loglevel::ERROR]   = "\033[0m";
   } else {
-    m_prefixes.emplace(make_pair(loglevel::TRACE,   "polybar|trace: "));
-    m_prefixes.emplace(make_pair(loglevel::INFO,    "polybar|info:  "));
-    m_prefixes.emplace(make_pair(loglevel::NOTICE,  "polybar|notice:  "));
-    m_prefixes.emplace(make_pair(loglevel::WARNING, "polybar|warn:  "));
-    m_prefixes.emplace(make_pair(loglevel::ERROR,   "polybar|error: "));
-    m_suffixes.emplace(make_pair(loglevel::TRACE,   ""));
-    m_suffixes.emplace(make_pair(loglevel::INFO,    ""));
-    m_suffixes.emplace(make_pair(loglevel::NOTICE,  ""));
-    m_suffixes.emplace(make_pair(loglevel::WARNING, ""));
-    m_suffixes.emplace(make_pair(loglevel::ERROR,   ""));
+    m_prefixes[loglevel::TRACE]   = "polybar|trace: ";
+    m_prefixes[loglevel::INFO]    = "polybar|info:  ";
+    m_prefixes[loglevel::NOTICE]  = "polybar|notice:  ";
+    m_prefixes[loglevel::WARNING] = "polybar|warn:  ";
+    m_prefixes[loglevel::ERROR]   = "polybar|error: ";
+    m_suffixes[loglevel::TRACE]   = "";
+    m_suffixes[loglevel::INFO]    = "";
+    m_suffixes[loglevel::NOTICE]  = "";
+    m_suffixes[loglevel::WARNING] = "";
+    m_suffixes[loglevel::ERROR]   = "";
   }
-  // clang-format on
 }
 
 /**
- * Set output verbosity
+ * Set output verbosity level with better runtime checks.
  */
 void logger::verbosity(loglevel level) {
-#ifndef DEBUG_LOGGER
-  if (level == loglevel::TRACE) {
+  if (level == loglevel::TRACE && !is_trace_enabled()) {
     throw application_error("Trace logging is not enabled...");
   }
-#endif
   m_level = level;
 }
 
 /**
- * Convert given loglevel name to its enum type counterpart
+ * Convert log level name to its enum counterpart using a map.
  */
-loglevel logger::parse_verbosity(const string& name, loglevel fallback) {
-  if (string_util::compare(name, "error")) {
-    return loglevel::ERROR;
-  } else if (string_util::compare(name, "warning")) {
-    return loglevel::WARNING;
-  } else if (string_util::compare(name, "notice")) {
-    return loglevel::NOTICE;
-  } else if (string_util::compare(name, "info")) {
-    return loglevel::INFO;
-  } else if (string_util::compare(name, "trace")) {
-    return loglevel::TRACE;
-  } else {
-    return fallback;
-  }
+loglevel logger::parse_verbosity(const std::string& name, loglevel fallback) {
+  static const std::unordered_map<std::string, loglevel> level_map{
+    {"error", loglevel::ERROR},
+    {"warning", loglevel::WARNING},
+    {"notice", loglevel::NOTICE},
+    {"info", loglevel::INFO},
+    {"trace", loglevel::TRACE}
+  };
+  
+  auto it = level_map.find(name);
+  return (it != level_map.end()) ? it->second : fallback;
 }
 
 POLYBAR_NS_END
