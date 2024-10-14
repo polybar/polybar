@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - An option `unmute-on-scroll` for `internal/pulseaudio` and `internal/alsa` to unmute audio when the user scrolls on the widget.
 
+### Changed
+
+- `internal/pulseaudio`: Volume adjustments now preserve balance instead of volume ratios ([#3123](https://github.com/polybar/polybar/issues/3123), [#3169](https://github.com/polybar/polybar/pull/3169)) by [`@parmort`](https://github.com/parmort)
+
 ## [3.7.2] - 2024-08-17
 ### Fixed
 - `custom/script`: When a script with `tail = true` received multiple lines quickly, only the first would get displayed ([`#3117`](https://github.com/polybar/polybar/issues/3117), [`#3119`](https://github.com/polybar/polybar/pull/3119)) by [@Isak05](https://github.com/Isak05)
