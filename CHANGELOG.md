@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- `internal/pulseaudio`: Volume adjustments now preserve balance instead of volume ratios ([#3123](https://github.com/polybar/polybar/issues/3123), [#3169](https://github.com/polybar/polybar/pull/3169)) by [`@parmort`](https://github.com/parmort)
+- `internal/pulseaudio`: Volume adjustments now preserve balance instead of volume ratios ([`#3123`](https://github.com/polybar/polybar/issues/3123), [`#3169`](https://github.com/polybar/polybar/pull/3169)) by [`@parmort`](https://github.com/parmort)
 
 ## [3.7.2] - 2024-08-17
 ### Fixed
