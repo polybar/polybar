@@ -26,11 +26,25 @@ namespace modules {
     m_unmute_on_scroll = m_conf.get(name(), "unmute-on-scroll", m_unmute_on_scroll);
 
     auto sink_name = m_conf.get(name(), "sink", ""s);
+    auto source_name = m_conf.get(name(), "source", ""s);
+    string device_name;
     bool m_max_volume = m_conf.get(name(), "use-ui-max", true);
     m_reverse_scroll = m_conf.get(name(), "reverse-scroll", false);
 
+    if (!sink_name.empty() && !source_name.empty()) {
+      throw module_error("Use either source or sink, not both");
+    }
+    pulseaudio::devicetype device_type;
+    if (!source_name.empty()) {
+      device_type = pulseaudio::devicetype::SOURCE;
+      device_name = move(source_name);
+    } else {
+      device_type = pulseaudio::devicetype::SINK;
+      device_name = move(sink_name);
+    }
+
     try {
-      m_pulseaudio = std::make_unique<pulseaudio>(m_log, move(sink_name), m_max_volume);
+      m_pulseaudio = std::make_unique<pulseaudio>(m_log, device_type, move(device_name), m_max_volume);
     } catch (const pulseaudio_error& err) {
       throw module_error(err.what());
     }
@@ -85,7 +99,7 @@ namespace modules {
         m_muted = m_muted || m_pulseaudio->is_muted();
       }
     } catch (const pulseaudio_error& err) {
-      m_log.err("%s: Failed to query pulseaudio sink (%s)", name(), err.what());
+      m_log.err("%s: Failed to query pulseaudio (%s)", name(), err.what());
     }
 
     // Replace label tokens
@@ -109,6 +123,17 @@ namespace modules {
   }
 
   string pulseaudio_module::get_output() {
+    // Exclude monitors and auto_null
+    if (!m_pulseaudio) {
+      return ""s;
+    }
+    auto s_name = m_pulseaudio->get_name();
+    if (s_name.empty() ||
+        s_name == "auto_null" ||
+        (s_name.size() >= 8 && s_name.compare(s_name.size() - 8, s_name.size(), ".monitor") == 0)) {
+      return ""s;
+    }
+
     // Get the module output early so that
     // the format prefix/suffix also gets wrapper
     // with the cmd handlers
