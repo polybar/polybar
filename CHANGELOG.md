@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - An option `unmute-on-scroll` for `internal/pulseaudio` and `internal/alsa` to unmute audio when the user scrolls on the widget.
-- Added `ramp-charging` tag to `internal/battery` module.
+- `internal/battery`: Added `ramp-charging` tag.
 ([`#3172`](https://github.com/polybar/polybar/pull/3172))
 by [@stringlapse](https://github.com/stringlapse).
 
