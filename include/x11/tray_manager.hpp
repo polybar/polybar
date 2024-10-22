@@ -67,6 +67,11 @@ struct tray_settings {
   rgba foreground{};
 
   /**
+   * Reverse the order of tray icons
+   */
+  bool reversed{false};
+
+  /**
    * Window ID of tray selection owner.
    *
    * Matches the bar window
