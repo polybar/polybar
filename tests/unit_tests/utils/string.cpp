@@ -14,20 +14,37 @@ TEST(String, ends_with) {
 }
 
 TEST(String, upper) {
+  EXPECT_EQ("", string_util::upper(""));
   EXPECT_EQ("FOO", string_util::upper("FOO"));
   EXPECT_EQ("FOO", string_util::upper("FoO"));
   EXPECT_EQ("FOO", string_util::upper("FOo"));
   EXPECT_EQ("FOO", string_util::upper("Foo"));
+  EXPECT_EQ("FOO", string_util::upper("fOO"));
+  EXPECT_EQ("FOO", string_util::upper("foO"));
+  EXPECT_EQ("FOO", string_util::upper("fOo"));
+  EXPECT_EQ("FOO", string_util::upper("foo"));
+  EXPECT_EQ("123", string_util::upper("123"));
 }
 
 TEST(String, lower) {
-  EXPECT_EQ("bar", string_util::lower("BAR"));
+  EXPECT_EQ("", string_util::lower(""));
+  EXPECT_EQ("bar", string_util::lower("BaR"));
+  EXPECT_EQ("bar", string_util::lower("BAr"));
+  EXPECT_EQ("bar", string_util::lower("Bar"));
+  EXPECT_EQ("bar", string_util::lower("bAR"));
+  EXPECT_EQ("bar", string_util::lower("baR"));
+  EXPECT_EQ("bar", string_util::lower("bAr"));
+  EXPECT_EQ("bar", string_util::lower("bar"));
+  EXPECT_EQ("123", string_util::upper("123"));
 }
 
 TEST(String, compare) {
+  EXPECT_TRUE(string_util::compare("", ""));
   EXPECT_TRUE(string_util::compare("foo", "foo"));
   EXPECT_TRUE(string_util::compare("foo", "Foo"));
+  EXPECT_TRUE(string_util::compare("123", "123"));
   EXPECT_FALSE(string_util::compare("foo", "bar"));
+  EXPECT_FALSE(string_util::compare("123", "456"));
 }
 
 TEST(String, contains) {
