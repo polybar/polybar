@@ -75,7 +75,7 @@ void manager::setup(const config& conf, const string& section_name) {
   m_opts.foreground = conf.get(section_name, "tray-foreground", m_bar_opts.foreground);
 
   m_opts.selection_owner = m_bar_opts.x_data.window;
-  m_opts.reversed = conf.get(section_name, "tray-reversed", false);
+  m_opts.reversed = conf.get(section_name, "tray-reversed", m_opts.reversed);
 
   m_log.info("tray: spacing=%upx padding=%upx size=%upx", m_opts.spacing, m_opts.padding, client_height);
 
