@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `internal/battery`: Added `ramp-charging` tag.
 ([`#3172`](https://github.com/polybar/polybar/pull/3172))
 by [@stringlapse](https://github.com/stringlapse).
+- Added tray-reversed = false option to tray module. Makes tray icons order reversed. ([`#3181`](https://github.com/polybar/polybar/discussions/3181))
 
 ### Changed
 - `internal/pulseaudio`: Volume adjustments now preserve balance instead of volume ratios ([`#3123`](https://github.com/polybar/polybar/issues/3123), [`#3169`](https://github.com/polybar/polybar/pull/3169)) by [`@parmort`](https://github.com/parmort)
