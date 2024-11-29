@@ -148,6 +148,7 @@ renderer::renderer(connection& conn, signal_emitter& sig, const config& conf, co
   m_comp_border = m_conf.get<cairo_operator_t>("settings", "compositing-border", m_comp_border);
 
   m_fixedcenter = m_conf.get(m_conf.section(), "fixed-center", true);
+  m_fixedright = m_conf.get(m_conf.section(), "fixed-right", false);
 }
 
 /**
@@ -450,10 +451,14 @@ double renderer::block_x(alignment a) const {
       }
 
       // The minimum x position this block can start at
-      double min_pos = block_x(left_barrier) + block_w(left_barrier);
+      double min_pos{0.0};
 
-      if (block_w(left_barrier) != 0) {
-        min_pos += BLOCK_GAP;
+      if (!m_fixedright) {
+        min_pos = block_x(left_barrier) + block_w(left_barrier);
+
+        if (block_w(left_barrier) != 0) {
+          min_pos += BLOCK_GAP;
+        }
       }
 
       return std::max(m_rect.width - block_w(a), min_pos);
