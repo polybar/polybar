@@ -4,6 +4,7 @@
 #include <set>
 
 #include "common.hpp"
+#include "components/config.hpp"
 #include "components/eventloop.hpp"
 #include "components/types.hpp"
 #include "errors.hpp"

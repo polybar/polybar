@@ -215,6 +215,8 @@ class config_parser {
    */
   bool is_valid_name(const string& name);
 
+  bool is_lua_file() const;
+
   vector<string> get_bars(const sectionmap_t& sections) const;
 
   /**
