@@ -9,12 +9,11 @@ POLYBAR_NS
 namespace modules {
   enum class cpu_state { NORMAL = 0, WARN };
   struct cpu_time {
-    unsigned long long user;
-    unsigned long long nice;
-    unsigned long long system;
-    unsigned long long idle;
-    unsigned long long steal;
-    unsigned long long total;
+    long long user;
+    long long nice;
+    long long system;
+    long long idle;
+    long long iowait;
   };
 
   using cpu_time_t = unique_ptr<cpu_time>;

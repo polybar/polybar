@@ -145,9 +145,7 @@ namespace modules {
         m_cputimes.back()->nice = std::stoull(values[2], nullptr, 10);
         m_cputimes.back()->system = std::stoull(values[3], nullptr, 10);
         m_cputimes.back()->idle = std::stoull(values[4], nullptr, 10);
-        m_cputimes.back()->steal = std::stoull(values[8], nullptr, 10);
-        m_cputimes.back()->total = m_cputimes.back()->user + m_cputimes.back()->nice + m_cputimes.back()->system +
-                                   m_cputimes.back()->idle + m_cputimes.back()->steal;
+        m_cputimes.back()->iowait = std::stoull(values[5], nullptr, 10);
       }
     } catch (const std::ios_base::failure& e) {
       m_log.err("Failed to read CPU values (what: %s)", e.what());
@@ -163,19 +161,23 @@ namespace modules {
       return 0;
     }
 
-    auto& last = m_cputimes[core];
+    auto& latest = m_cputimes[core];
     auto& prev = m_cputimes_prev[core];
 
-    auto last_idle = last->idle;
-    auto prev_idle = prev->idle;
+    // The iowait counter can go backwards, so be safe with all
+    auto system_diff = std::max(latest->system - prev->system, 0ll);
+    auto user_diff = std::max(latest->user - prev->user, 0ll);
+    user_diff += std::max(latest->nice - prev->nice, 0ll);
+    auto wait_diff = std::max(latest->iowait - prev->iowait, 0ll);
+    auto idle_diff = std::max(latest->idle - prev->idle, 0ll);
 
-    auto diff = last->total - prev->total;
+    auto total_diff = system_diff + user_diff + wait_diff + idle_diff;
 
-    if (diff == 0) {
+    if (total_diff == 0) {
       return 0;
     }
 
-    float percentage = 100.0f * (diff - (last_idle - prev_idle)) / diff;
+    float percentage = ((float) (system_diff + user_diff) / total_diff) * 100;
 
     return math_util::cap<float>(percentage, 0, 100);
   }
