@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include "modules/meta/event_handler.hpp"
 #include "modules/meta/static_module.hpp"
 #include "modules/meta/types.hpp"
@@ -69,6 +70,8 @@ namespace modules {
     void action_focus(const string& data);
     void action_next();
     void action_prev();
+
+    string class_name(unsigned int d_idx) const;
 
     void focus_direction(bool next);
     void focus_desktop(unsigned new_desktop);
