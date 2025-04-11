@@ -1,6 +1,5 @@
 #pragma once
 
-#include <string>
 #include "modules/meta/event_handler.hpp"
 #include "modules/meta/static_module.hpp"
 #include "modules/meta/types.hpp"
