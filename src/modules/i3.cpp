@@ -42,6 +42,7 @@ namespace modules {
     m_pinworkspaces = m_conf.get(name(), "pin-workspaces", m_pinworkspaces);
     m_show_urgent = m_conf.get(name(), "show-urgent", m_show_urgent);
     m_strip_wsnumbers = m_conf.get(name(), "strip-wsnumbers", m_strip_wsnumbers);
+    m_strip_wsnames = m_conf.get(name(), "strip-wsnames", m_strip_wsnames);
     m_fuzzy_match = m_conf.get(name(), "fuzzy-match", m_fuzzy_match);
 
     m_conf.warn_deprecated(name(), "wsname-maxlen", "%name:min:max%");
@@ -79,6 +80,12 @@ namespace modules {
       }
 
       i++;
+    }
+
+    if (m_strip_wsnumbers && m_strip_wsnames) {
+      m_log.err("%s: Ignoring strip-wsnumbers and strip-wsnames because both are set", name());
+      m_strip_wsnumbers = false;
+      m_strip_wsnames = false;
     }
 
     try {
@@ -169,9 +176,18 @@ namespace modules {
 
         string ws_name{ws->name};
 
-        // Remove workspace numbers "0:"
-        if (m_strip_wsnumbers) {
-          ws_name.erase(0, string_util::find_nth(ws_name, 0, ":", 1) + 1);
+        if (m_strip_wsnames || m_strip_wsnumbers) {
+          auto idx = string_util::find_nth(ws_name, 0, ":", 1);
+
+          if (idx != string::npos) {
+            if (m_strip_wsnames) {
+              // Remove workspace names ": name"
+              ws_name.erase(idx);
+            } else {
+              // Remove workspace numbers "0:"
+              ws_name.erase(0, idx + 1);
+            }
+          }
         }
 
         // Trim leading and trailing whitespace
