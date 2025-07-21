@@ -1,5 +1,8 @@
 #include "modules/battery.hpp"
 
+#include <iostream>
+#include <iomanip>
+
 #include "drawtypes/animation.hpp"
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
@@ -45,10 +48,25 @@ namespace modules {
     }
 
     // Make capacity reader
+    //
+    // The code from this point is trying to handle cases where the kernel
+    // presents current, or power, but not both. (If it's both, we can just
+    // ignore one.) This mostly doesn't affect the math, but it's important that
+    // we not _mix_ current-based and power-based measurements, or we wind up
+    // being off by a factor of the voltage (which in mV is order-of 10000).
+    //
+    // Somewhat arbitrarily, we'll see which of the _now files we can access,
+    // and then force all other files to be from the same unit family (current
+    // or power) rather than a mix.
     if ((m_fcapnow = file_util::pick({path_battery + "charge_now", path_battery + "energy_now"})).empty()) {
-      throw module_error("No suitable way to get current capacity value");
-    } else if ((m_fcapfull = file_util::pick({path_battery + "charge_full", path_battery + "energy_full"})).empty()) {
-      throw module_error("No suitable way to get max capacity value");
+      throw module_error("No suitable way to get charge/energy now value");
+    }
+
+    bool const units_are_current = string_util::contains(m_fcapnow, "charge_now");
+
+    m_fcapfull = path_battery + (units_are_current ? "charge_full" : "energy_full");
+    if (!file_util::exists(m_fcapfull)) {
+      throw module_error("No suitable way to get max charge/energy value");
     }
 
     m_capacity_reader = make_unique<capacity_reader>([=] {
@@ -60,52 +78,50 @@ namespace modules {
     // Make rate reader
     if ((m_fvoltage = file_util::pick({path_battery + "voltage_now"})).empty()) {
       throw module_error("No suitable way to get current voltage value");
-    } else if ((m_frate = file_util::pick({path_battery + "current_now", path_battery + "power_now"})).empty()) {
-      throw module_error("No suitable way to get current charge rate value");
+    }
+    m_frate = path_battery + (units_are_current ? "current_now" : "power_now");
+    if (!file_util::exists(m_frate)) {
+      throw module_error("No suitable way to get charge/discharge rate value");
     }
 
     m_rate_reader = make_unique<rate_reader>([this] {
-      unsigned long rate{static_cast<unsigned long>(std::abs(std::strtol(file_util::contents(m_frate).c_str(), nullptr, 10)))};
-      unsigned long volt{std::strtoul(file_util::contents(m_fvoltage).c_str(), nullptr, 10) / 1000UL};
-      unsigned long now{std::strtoul(file_util::contents(m_fcapnow).c_str(), nullptr, 10)};
-      unsigned long max{std::strtoul(file_util::contents(m_fcapfull).c_str(), nullptr, 10)};
-      unsigned long cap{read(*m_state_reader) ? max - now : now};
+      // rate is in uA (if current) or uW (if power) - normalized to positive
+      float rate{std::abs(std::stof(file_util::contents(m_frate).c_str(), nullptr))};
+      // now is in uAh (if charge_now) or uWh (if energy_now)
+      float now{std::stof(file_util::contents(m_fcapnow).c_str(), nullptr)};
+      // max is in uAh (if charge_now) or uWh (if energy_now)
+      float max{std::stof(file_util::contents(m_fcapfull).c_str(), nullptr)};
+      // cap is in uAh or uWh
+      float cap{read(*m_state_reader) ? max - now : now};
 
-      if (rate && volt && cap) {
-        auto remaining = (cap / volt);
-        auto current_rate = (rate / volt);
-
-        if (remaining && current_rate) {
-          return 3600UL * remaining / current_rate;
-        }
+      if (rate && cap) {
+        return 3600 * cap / std::abs(rate);
       }
 
-      return 0UL;
+      return 0.f;
     });
 
     // Make consumption reader
-    m_consumption_reader = make_unique<consumption_reader>([this] {
+    m_consumption_reader = make_unique<consumption_reader>([this, units_are_current] {
       float consumption;
 
       // if the rate we found was the current, calculate power (P = I*V)
-      if (string_util::contains(m_frate, "current_now")) {
-        unsigned long current{std::strtoul(file_util::contents(m_frate).c_str(), nullptr, 10)};
-        unsigned long voltage{std::strtoul(file_util::contents(m_fvoltage).c_str(), nullptr, 10)};
+      if (units_are_current) {
+        float current{std::stof(file_util::contents(m_frate).c_str(), nullptr)};
+        float voltage{std::stof(file_util::contents(m_fvoltage).c_str(), nullptr)};
 
-        consumption = ((voltage / 1000.0) * (current / 1000.0)) / 1e6;
+        consumption = ((voltage / 1000.0) * (std::abs(current) / 1000.0)) / 1e6;
       } else {
         // if it was power, just use as is
-        unsigned long power{std::strtoul(file_util::contents(m_frate).c_str(), nullptr, 10)};
+        float power{std::stof(file_util::contents(m_frate).c_str(), nullptr)};
 
         consumption = power / 1e6;
       }
 
-      // convert to string with 2 decimmal places
-      string rtn(16, '\0'); // 16 should be plenty big. Cant see it needing more than 6/7..
-      auto written = std::snprintf(&rtn[0], rtn.size(), "%.2f", consumption);
-      rtn.resize(written);
-
-      return rtn;
+      // convert to string with 2 decimal places
+      std::stringstream rtn;
+      rtn << std::fixed << std::setprecision(2) << consumption;
+      return rtn.str();
     });
 
     // Load state and capacity level
