@@ -47,6 +47,7 @@ endif()
 
 find_package(Threads REQUIRED)
 find_package(CairoFC REQUIRED)
+find_package(Freetype REQUIRED)
 
 find_package(LibUV 1.3.0 REQUIRED)
 
