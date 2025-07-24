@@ -19,6 +19,7 @@ by [@stringlapse](https://github.com/stringlapse).
 ### Changed
 - `internal/pulseaudio`: Volume adjustments now preserve balance instead of volume ratios ([`#3123`](https://github.com/polybar/polybar/issues/3123), [`#3169`](https://github.com/polybar/polybar/pull/3169)) by [`@parmort`](https://github.com/parmort)
 - When the `-r` flag is provided, and RandR reports zero connected active screens, polybar will not restart. This fixes polybar dying on some laptops when the lid is closed. ([`#3078`](https://github.com/polybar/polybar/pull/3078))).
+- The `internal/cpu` module no longer counts time spent waiting on I/O devices (`iowait`) towards cpu load
 
 ## [3.7.2] - 2024-08-17
 ### Fixed
