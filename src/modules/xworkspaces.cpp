@@ -1,15 +1,18 @@
 #include "modules/xworkspaces.hpp"
 
 #include <algorithm>
+#include <map>
 #include <set>
 #include <utility>
 
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
 #include "modules/meta/base.inl"
+#include "modules/xwindow.hpp"
 #include "utils/math.hpp"
 #include "x11/atoms.hpp"
 #include "x11/connection.hpp"
+#include "x11/ewmh.hpp"
 #include "x11/icccm.hpp"
 
 POLYBAR_NS
@@ -286,9 +289,15 @@ namespace modules {
    */
   void xworkspaces_module::rebuild_desktop_states() {
     std::set<unsigned int> occupied_desks;
+    std::map<unsigned int, xcb_window_t> clients;
+
     for (auto&& c : m_clients) {
       occupied_desks.insert(c.second);
+      clients.insert(pair(c.second, c.first));
     }
+    xcb_window_t win = ewmh_util::get_active_window();
+    unsigned int d_idx = ewmh_util::get_desktop_from_window(win);
+    clients.insert(pair(d_idx, win));
 
     for (auto&& v : m_viewports) {
       for (auto&& d : v->desktops) {
@@ -308,6 +317,12 @@ namespace modules {
         d->label->replace_token("%name%", m_desktop_names[d->index]);
         d->label->replace_token("%nwin%", to_string(m_windows[d->index]));
         d->label->replace_token("%icon%", m_icons->get(m_desktop_names[d->index], DEFAULT_ICON)->get());
+        unique_ptr<active_window> window = make_unique<active_window>(m_connection, clients[d->index]);
+        if (window) {
+          d->label->replace_token("%title%", window->title());
+          d->label->replace_token("%instance%", window->instance_name());
+          d->label->replace_token("%class%", window->class_name());
+        }
       }
     }
   }
