@@ -324,6 +324,11 @@ namespace net {
       m_tuntap = false;
     }
 
+    if (strncmp(driver.driver, "wireguard", 9) == 0) {
+      m_tuntap = true;
+      m_wireguard = true;
+    }
+
     if (strncmp(driver.driver, "bridge", 6) == 0) {
       m_bridge = true;
     }
@@ -406,6 +411,10 @@ namespace net {
   bool wired_network::connected() const {
     if (!m_tuntap && !network::test_interface()) {
       return false;
+    }
+
+    if (m_wireguard) {
+      return true;
     }
 
     struct ethtool_value data {};
