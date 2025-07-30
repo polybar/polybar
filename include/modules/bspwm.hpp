@@ -80,6 +80,7 @@ namespace modules {
     map<mode, label_t> m_modelabels;
     map<unsigned int, label_t> m_statelabels;
     label_t m_monitorlabel;
+    label_t m_dimmed_monitorlabel;
     iconset_t m_icons;
 
     /**
