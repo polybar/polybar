@@ -92,6 +92,9 @@ when you click anywhere on the bar (where there isn't another click action):
 This will then trigger the ``toggle`` action on the ``mydate`` module when you
 click anywhere on the bar.
 
+/!\\ ``click-left`` and related trigger configurations are only possible in the bar section,
+as well as in the following modules: ``text``, ``script``, ``ipc``.
+
 Similarly, we can use action strings in ``%{A}``
 `formatting tags <https://github.com/polybar/polybar/wiki/Formatting#action-a>`_
 just as we would regular commands:
