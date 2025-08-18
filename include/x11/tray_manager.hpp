@@ -72,6 +72,11 @@ struct tray_settings {
   bool reversed{false};
 
   /**
+   * Sort the order of tray icons by their WM_NAME
+   */
+  bool sorted{true};
+
+  /**
    * Window ID of tray selection owner.
    *
    * Matches the bar window
@@ -157,7 +162,6 @@ class manager
   signal_emitter& m_sig;
   const logger& m_log;
   vector<unique_ptr<client>> m_clients;
-
   tray_settings m_opts{};
   const bar_settings& m_bar_opts;
 
