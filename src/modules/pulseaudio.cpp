@@ -37,10 +37,13 @@ namespace modules {
 
     // Add formats and elements
     m_formatter->add(FORMAT_VOLUME, TAG_LABEL_VOLUME, {TAG_RAMP_VOLUME, TAG_LABEL_VOLUME, TAG_BAR_VOLUME});
-    m_formatter->add(FORMAT_MUTED, TAG_LABEL_MUTED, {TAG_RAMP_VOLUME, TAG_LABEL_MUTED, TAG_BAR_VOLUME});
+    m_formatter->add(FORMAT_MUTED, TAG_LABEL_MUTED, {TAG_RAMP_MUTED, TAG_LABEL_MUTED, TAG_BAR_MUTED});
 
     if (m_formatter->has(TAG_BAR_VOLUME)) {
       m_bar_volume = load_progressbar(m_bar, m_conf, name(), TAG_BAR_VOLUME);
+    }
+    if (m_formatter->has(TAG_BAR_MUTED)) {
+      m_bar_muted = load_progressbar(m_bar, m_conf, name(), TAG_BAR_MUTED);
     }
     if (m_formatter->has(TAG_LABEL_VOLUME, FORMAT_VOLUME)) {
       m_label_volume = load_optional_label(m_conf, name(), TAG_LABEL_VOLUME, "%percentage%%");
@@ -50,6 +53,9 @@ namespace modules {
     }
     if (m_formatter->has(TAG_RAMP_VOLUME)) {
       m_ramp_volume = load_ramp(m_conf, name(), TAG_RAMP_VOLUME);
+    }
+    if (m_formatter->has(TAG_RAMP_MUTED)) {
+      m_ramp_muted = load_ramp(m_conf, name(), TAG_RAMP_MUTED);
     }
   }
 
@@ -144,8 +150,12 @@ namespace modules {
   bool pulseaudio_module::build(builder* builder, const string& tag) const {
     if (tag == TAG_BAR_VOLUME) {
       builder->node(m_bar_volume->output(m_volume));
+    } else if (tag == TAG_BAR_MUTED) {
+      builder->node(m_bar_muted->output(m_volume));
     } else if (tag == TAG_RAMP_VOLUME) {
       builder->node(m_ramp_volume->get_by_percentage(m_volume));
+    } else if (tag == TAG_RAMP_MUTED) {
+      builder->node(m_ramp_muted->get_by_percentage(m_volume));
     } else if (tag == TAG_LABEL_VOLUME) {
       builder->node(m_label_volume);
     } else if (tag == TAG_LABEL_MUTED) {
