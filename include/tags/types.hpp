@@ -16,6 +16,7 @@ namespace tags {
     A, // mouse action
     B, // background color
     F, // foreground color
+    H, // highlight color
     T, // font index
     O, // pixel offset
     R, // flip colors
@@ -51,6 +52,17 @@ namespace tags {
     color_type type;
   };
 
+  struct highlight_value {
+    /**
+     * Two colors and a percentage on which to split them
+     *
+     * Only used if type == HIGHLIGHT
+     */
+    color_value left_color;
+    color_value right_color;
+    double percentage;
+  };
+
   /**
    * Stores information about an action
    *
@@ -79,6 +91,10 @@ namespace tags {
        * Used for 'F', 'G', 'o', 'u' formatting tags.
        */
       color_value color;
+      /**
+       * Used for 'H' formatting tags.
+       */
+      highlight_value highlight;
       /**
        * For for 'A' tags
        */
