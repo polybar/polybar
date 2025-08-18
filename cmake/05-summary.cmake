@@ -37,6 +37,7 @@ if (BUILD_LIBPOLY)
   colored_option("   i3" ENABLE_I3)
   colored_option("   mpd" ENABLE_MPD MPD_VERSION)
   colored_option("   network (${WIRELESS_LIB})" ENABLE_NETWORK NETWORK_LIBRARY_VERSION)
+  colored_option("   oss" ENABLE_OSS)
   colored_option("   pulseaudio" ENABLE_PULSEAUDIO PULSEAUDIO_VERSION)
   colored_option("   xkeyboard" WITH_XKB Xcb_XKB_VERSION)
 

@@ -31,6 +31,11 @@ set(NETWORK_SOURCES
   $<IF:$<BOOL:${WITH_LIBNL}>,${src_dir}/adapters/net_nl.cpp,${src_dir}/adapters/net_iw.cpp>
   )
 
+set(OSS_SOURCES
+  ${src_dir}/adapters/oss.cpp
+  ${src_dir}/modules/oss.cpp
+  )
+
 set(PULSEAUDIO_SOURCES
   ${src_dir}/adapters/pulseaudio.cpp
   ${src_dir}/modules/pulseaudio.cpp
@@ -145,6 +150,7 @@ set(POLY_SOURCES
   $<$<BOOL:${ENABLE_I3}>:${I3_SOURCES}>
   $<$<BOOL:${ENABLE_MPD}>:${MPD_SOURCES}>
   $<$<BOOL:${ENABLE_NETWORK}>:${NETWORK_SOURCES}>
+  $<$<BOOL:${ENABLE_OSS}>:${OSS_SOURCES}>
   $<$<BOOL:${ENABLE_PULSEAUDIO}>:${PULSEAUDIO_SOURCES}>
   $<$<BOOL:${WITH_XCURSOR}>:${XCURSOR_SOURCES}>
   $<$<BOOL:${WITH_XKB}>:${XKB_SOURCES}>

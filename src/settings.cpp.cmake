@@ -33,13 +33,14 @@ bool version_details(const std::vector<std::string>& args) {
 // clang-format off
 void print_build_info(bool extended) {
   printf("%s %s\n\n", APP_NAME, APP_VERSION);
-  printf("Features: %calsa %ccurl %ci3 %cmpd %cnetwork(%s) %cpulseaudio %cxkeyboard\n",
+  printf("Features: %calsa %ccurl %ci3 %cmpd %cnetwork(%s) %coss %cpulseaudio %cxkeyboard\n",
     (ENABLE_ALSA       ? '+' : '-'),
     (ENABLE_CURL       ? '+' : '-'),
     (ENABLE_I3         ? '+' : '-'),
     (ENABLE_MPD        ? '+' : '-'),
     (ENABLE_NETWORK    ? '+' : '-'),
     WIRELESS_LIB,
+    (ENABLE_OSS        ? '+' : '-'),
     (ENABLE_PULSEAUDIO ? '+' : '-'),
     (ENABLE_XKEYBOARD  ? '+' : '-'));
   if (extended) {
