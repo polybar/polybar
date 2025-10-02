@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Allow xworkspaces to use `%title% %class% %instance%` just like xwindow did.
+- It could be much easier to switch between desktops.
+[`#3206`](https://github.com/polybar/polybar/pull/3206)
+bt [@dbgbgtf1](https://github.com/dbgbgtf1)
+
+## [Unreleased]
+### Added
 - An option `unmute-on-scroll` for `internal/pulseaudio` and `internal/alsa` to unmute audio when the user scrolls on the widget.
 - `internal/battery`: Added `ramp-charging` tag.
 ([`#3172`](https://github.com/polybar/polybar/pull/3172))
