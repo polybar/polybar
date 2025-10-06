@@ -40,18 +40,6 @@ namespace modules {
       throw module_error("Missing 'interface' or 'interface-type'");
     }
 
-    if (!net::is_interface_valid(m_interface)) {
-      throw module_error("Invalid network interface \"" + m_interface + "\"");
-    }
-
-    auto canonical = net::get_canonical_interface(m_interface);
-
-    if (canonical.second) {
-      m_log.info(
-          "%s: Replacing given interface '%s' with its canonical name '%s'", name(), m_interface, canonical.first);
-      m_interface = canonical.first;
-    }
-
     m_ping_nth_update = m_conf.get(name(), "ping-interval", m_ping_nth_update);
     m_udspeed_minwidth = m_conf.get(name(), "udspeed-minwidth", m_udspeed_minwidth);
     m_accumulate = m_conf.get(name(), "accumulate-stats", m_accumulate);
@@ -97,15 +85,6 @@ namespace modules {
       }
     }
 
-    // Get an intstance of the network interface
-    if (net::is_wireless_interface(m_interface)) {
-      m_wireless = std::make_unique<net::wireless_network>(m_interface);
-      m_wireless->set_unknown_up(m_unknown_up);
-    } else {
-      m_wired = std::make_unique<net::wired_network>(m_interface);
-      m_wired->set_unknown_up(m_unknown_up);
-    };
-
     // We only need to start the subthread if the packetloss animation is used
     if (m_animation_packetloss) {
       m_threads.emplace_back(thread(&network_module::subthread_routine, this));
@@ -117,14 +96,48 @@ namespace modules {
     m_wired.reset();
   }
 
+  void network_module::setup() {
+    m_log.warn("%s: Setting up interface", name(), m_interface);
+    auto canonical = net::get_canonical_interface(m_interface);
+
+    if (canonical.second) {
+      m_log.info(
+          "%s: Replacing given interface '%s' with its canonical name '%s'", name(), m_interface, canonical.first);
+      m_interface = canonical.first;
+    }
+
+    // Get an instance of the network interface
+    if (net::is_wireless_interface(m_interface)) {
+      m_wireless = std::make_unique<net::wireless_network>(m_interface);
+      m_wireless->set_unknown_up(m_unknown_up);
+    } else {
+      m_wired = std::make_unique<net::wired_network>(m_interface);
+      m_wired->set_unknown_up(m_unknown_up);
+    };
+
+    m_setup = true;
+  }
+
   bool network_module::update() {
+    if (!net::is_interface_valid(m_interface)) {
+      // If the interface doesn't exist, it might be ephemeral
+      m_setup = false;
+      m_connected = false;
+      return true;
+    }
+
+    // The interface exists, but are we ready for it?
+    if (!m_setup) {
+      setup();
+    }
+
     net::network* network =
         m_wireless ? static_cast<net::network*>(m_wireless.get()) : static_cast<net::network*>(m_wired.get());
 
     if (!network->query(m_accumulate)) {
       m_log.warn("%s: Failed to query interface '%s'", name(), m_interface);
       m_connected = false;
-      return false;
+      return true;
     }
 
     try {

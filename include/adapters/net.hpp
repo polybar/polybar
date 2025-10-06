@@ -104,6 +104,7 @@ namespace net {
     link_status m_status{};
     string m_interface;
     bool m_tuntap{false};
+    bool m_wireguard{false};
     bool m_bridge{false};
     bool m_unknown_up{false};
   };
