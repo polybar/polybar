@@ -76,6 +76,7 @@ void manager::setup(const config& conf, const string& section_name) {
 
   m_opts.selection_owner = m_bar_opts.x_data.window;
   m_opts.reversed = conf.get(section_name, "tray-reversed", m_opts.reversed);
+  m_opts.sorted = conf.get(section_name, "tray-sorted", m_opts.sorted);
 
   m_log.info("tray: spacing=%upx padding=%upx size=%upx", m_opts.spacing, m_opts.padding, client_height);
 
@@ -270,6 +271,15 @@ void manager::reconfigure_clients() {
     }
   };
 
+  if(m_opts.sorted) {
+    // compare the inner clients not the unique_ptrs
+    auto client_comp = [&] (std::unique_ptr<client>& l, std::unique_ptr<client>& r) {
+      return *l < *r;
+    };
+    // std::sort uses introsort, which avoid performance degradation on an already sorted array
+    // which reduces performance impact of multiple calls to sort tray items.
+    std::sort(m_clients.begin(), m_clients.end(), client_comp);
+  }
   if (m_opts.reversed) {
     for (auto it = m_clients.rbegin(); it != m_clients.rend(); ++it) {
       reconfigure_client(*it);

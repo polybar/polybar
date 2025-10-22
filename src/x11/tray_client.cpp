@@ -369,6 +369,10 @@ void client::observe_background() {
   update_bg();
 }
 
+bool client::operator<(client const& other) const {
+  return m_name < other.m_name;
+}
+
 } // namespace tray
 
 POLYBAR_NS_END
