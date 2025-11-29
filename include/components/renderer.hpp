@@ -126,6 +126,7 @@ class renderer : public renderer_interface,
   cairo_pattern_t* m_cornermask{};
 
   cairo_operator_t m_comp_bg{CAIRO_OPERATOR_SOURCE};
+  cairo_operator_t m_comp_hl{CAIRO_OPERATOR_OVER};
   cairo_operator_t m_comp_fg{CAIRO_OPERATOR_OVER};
   cairo_operator_t m_comp_ol{CAIRO_OPERATOR_OVER};
   cairo_operator_t m_comp_ul{CAIRO_OPERATOR_OVER};

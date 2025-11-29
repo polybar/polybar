@@ -211,6 +211,7 @@ namespace tags {
       // clang-format off
       case 'B': sub.format = syntaxtag::B; break;
       case 'F': sub.format = syntaxtag::F; break;
+      case 'H': sub.format = syntaxtag::H; break;
       case 'u': sub.format = syntaxtag::u; break;
       case 'o': sub.format = syntaxtag::o; break;
       case 'T': sub.format = syntaxtag::T; break;
@@ -235,6 +236,7 @@ namespace tags {
     switch (c) {
       case 'B':
       case 'F':
+      case 'H':
       case 'u':
       case 'o':
       case 'T':
@@ -284,6 +286,9 @@ namespace tags {
       case 'A':
         std::tie(tag_data.action, e.data) = parse_action();
         break;
+      case 'H':
+        tag_data.highlight = parse_highlight();
+        break;
 
       case '+':
       case '-':
@@ -314,6 +319,65 @@ namespace tags {
       ret.val = c;
     }
 
+    return ret;
+  }
+
+  color_value parser::parse_color(string s) {
+    color_value ret;
+
+    if (s.empty() || s == "-") {
+      ret.type = color_type::RESET;
+    } else {
+      rgba c{s};
+
+      if (!c.has_color()) {
+        throw color_error(s);
+      }
+
+      ret.type = color_type::COLOR;
+      ret.val = c;
+    }
+
+    return ret;
+  }
+
+  highlight_value parser::parse_highlight() {
+    string s = get_tag_value();
+
+    highlight_value ret;
+
+    if (s.empty()) {
+      ret.left_color.type = color_type::RESET;
+      ret.right_color.type = color_type::RESET;
+      ret.percentage = 100.0;
+      return ret;
+    }
+
+    auto args = std::array<string, 4>();
+
+    size_t last = 0;
+    size_t next = 0;
+    size_t i = 0;
+    while ((next = s.find(':', last)) != string::npos) {
+      try {
+        args[i++] = s.substr(last, next - last);
+      } catch (const exception& err) {
+        throw highlight_error(s, err.what());
+      }
+      last = next + 1;
+    }
+    if (i != 3) {
+      throw highlight_error(s);
+    }
+    args[i] = s.substr(last);
+
+    ret.left_color = parse_color(args[1]);
+    ret.right_color = parse_color(args[2]);
+    try {
+      ret.percentage = std::stod(args[3]);
+    } catch (const std::exception& err) {
+      throw highlight_error(s, err.what());
+    }
     return ret;
   }
 

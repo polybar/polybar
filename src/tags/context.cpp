@@ -11,6 +11,20 @@ namespace tags {
     }
   }
 
+  static std::tuple<rgba, rgba, double> get_highlight(highlight_value h, rgba fallback) {
+    rgba left = h.left_color.val;
+    rgba right = h.right_color.val;
+    if (h.left_color.type == color_type::RESET) {
+      left = fallback;
+    }
+    if (h.right_color.type == color_type::RESET) {
+      right = fallback;
+    }
+    return std::tie(left, right, h.percentage);
+  }
+
+  static double no_hl = 100.0;
+
   context::context(const bar_settings& settings) : m_settings(settings) {
     reset();
   }
@@ -26,6 +40,10 @@ namespace tags {
 
   void context::apply_fg(color_value c) {
     m_fg = get_color(c, m_settings.foreground);
+  }
+
+  void context::apply_hl(highlight_value h) {
+    m_hl = get_highlight(h, m_settings.background);
   }
 
   void context::apply_ol(color_value c) {
@@ -77,6 +95,7 @@ namespace tags {
   void context::apply_reset() {
     m_bg = m_settings.background;
     m_fg = m_settings.foreground;
+    m_hl = std::tie(m_settings.background, m_settings.background, no_hl);
     m_ul = m_settings.underline.color;
     m_ol = m_settings.overline.color;
     m_font = 0;
@@ -90,6 +109,10 @@ namespace tags {
 
   rgba context::get_fg() const {
     return m_fg;
+  }
+
+  std::tuple<rgba, rgba, double> context::get_hl() const {
+    return m_hl;
   }
 
   rgba context::get_ol() const {
@@ -119,6 +142,6 @@ namespace tags {
   std::pair<alignment, int> context::get_relative_tray_position() const {
     return m_relative_tray_position;
   }
-}  // namespace tags
+} // namespace tags
 
 POLYBAR_NS_END
