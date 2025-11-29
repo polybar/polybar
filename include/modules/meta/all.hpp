@@ -34,6 +34,9 @@
 #if ENABLE_ALSA
 #include "modules/alsa.hpp"
 #endif
+#if ENABLE_OSS
+#include "modules/oss.hpp"
+#endif
 #if ENABLE_PULSEAUDIO
 #include "modules/pulseaudio.hpp"
 #endif
