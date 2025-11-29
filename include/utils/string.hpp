@@ -99,7 +99,9 @@ string filesize_mib(unsigned long long kibibytes, size_t precision = 0, const st
 string filesize_gib(unsigned long long kibibytes, size_t precision = 0, const string& locale = "");
 string filesize_gib_mib(
     unsigned long long kibibytes, size_t precision_mib = 0, size_t precision_gib = 0, const string& locale = "");
-string filesize(unsigned long long kbytes, size_t precision = 0, bool fixed = false, const string& locale = "");
+string filesize(unsigned long long bytes, size_t precision = 0, bool fixed = false, const string& locale = "");
+string filesize_specific(
+    unsigned long long bytes, char target, size_t precision = 0, bool fixed = false, const string& locale = "");
 
 hash_type hash(const string& src);
 } // namespace string_util
