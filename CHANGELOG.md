@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ([`#3172`](https://github.com/polybar/polybar/pull/3172))
 by [@stringlapse](https://github.com/stringlapse).
 - Added tray-reversed = false option to tray module. Makes tray icons order reversed. ([`#3181`](https://github.com/polybar/polybar/discussions/3181))
+- Added support for ephemeral network interfaces, with rudimentary wireguard support ([`#1164`](https://github.com/polybar/polybar/issues/1164), [`#1531`](https://github.com/polybar/polybar/issues/1531), [`#2980`](https://github.com/polybar/polybar/pull/2980)) by [@Swivelgames](https://github.com/Swivelgames).
 
 ### Changed
 - `internal/pulseaudio`: Volume adjustments now preserve balance instead of volume ratios ([`#3123`](https://github.com/polybar/polybar/issues/3123), [`#3169`](https://github.com/polybar/polybar/pull/3169)) by [`@parmort`](https://github.com/parmort)

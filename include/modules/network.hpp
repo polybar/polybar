@@ -15,6 +15,7 @@ namespace modules {
     explicit network_module(const bar_settings&, string, const config&);
 
     void teardown();
+    void setup();
     bool update();
     string get_format() const;
     bool build(builder* builder, const string& tag) const;
@@ -45,6 +46,7 @@ namespace modules {
 
     atomic<bool> m_connected{false};
     atomic<bool> m_packetloss{false};
+    atomic<bool> m_setup{false};
 
     int m_signal{0};
     int m_quality{0};
