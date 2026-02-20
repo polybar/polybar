@@ -42,7 +42,7 @@ namespace modules {
     // Add formats and elements
     m_formatter->add(
         FORMAT_MOUNTED, TAG_LABEL_MOUNTED, {TAG_LABEL_MOUNTED, TAG_BAR_FREE, TAG_BAR_USED, TAG_RAMP_CAPACITY});
-    m_formatter->add_optional(FORMAT_WARN, {TAG_LABEL_WARN, TAG_BAR_FREE, TAG_BAR_USED, TAG_RAMP_CAPACITY});
+    m_formatter->add_optional(FORMAT_WARN, {TAG_LABEL_WARN, TAG_BAR_FREE, TAG_BAR_USED, TAG_RAMP_CAPACITY, TAG_RAMP_FREE, TAG_RAMP_USED});
     m_formatter->add(FORMAT_UNMOUNTED, TAG_LABEL_UNMOUNTED, {TAG_LABEL_UNMOUNTED});
 
     if (m_formatter->has(TAG_LABEL_MOUNTED)) {
@@ -62,6 +62,12 @@ namespace modules {
     }
     if (m_formatter->has(TAG_RAMP_CAPACITY)) {
       m_rampcapacity = load_ramp(m_conf, name(), TAG_RAMP_CAPACITY);
+    }
+    if (m_formatter->has(TAG_RAMP_FREE)) {
+      m_rampfree = load_ramp(m_conf, name(), TAG_RAMP_FREE);
+    }
+    if (m_formatter->has(TAG_RAMP_FREE)) {
+      m_rampused = load_ramp(m_conf, name(), TAG_RAMP_USED);
     }
 
     // Warn about "unreachable" format tag
@@ -196,6 +202,10 @@ namespace modules {
       builder->node(m_barused->output(mount->percentage_used));
     } else if (tag == TAG_RAMP_CAPACITY) {
       builder->node(m_rampcapacity->get_by_percentage_with_borders(mount->percentage_free, 0, m_perc_used_warn));
+    } else if (tag == TAG_RAMP_FREE) {
+      builder->node(m_rampfree->output(mount->percentage_free));
+    } else if (tag == TAG_RAMP_USED) {
+      builder->node(m_rampused->output(mount->percentage_used));
     } else if (tag == TAG_LABEL_MOUNTED) {
       replace_tokens(m_labelmounted);
       builder->node(m_labelmounted);
