@@ -66,7 +66,7 @@ namespace modules {
     if (m_formatter->has(TAG_RAMP_FREE)) {
       m_rampfree = load_ramp(m_conf, name(), TAG_RAMP_FREE);
     }
-    if (m_formatter->has(TAG_RAMP_FREE)) {
+    if (m_formatter->has(TAG_RAMP_USED)) {
       m_rampused = load_ramp(m_conf, name(), TAG_RAMP_USED);
     }
 
