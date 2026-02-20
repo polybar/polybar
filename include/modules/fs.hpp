@@ -55,6 +55,8 @@ namespace modules {
     static constexpr auto TAG_BAR_USED = "<bar-used>";
     static constexpr auto TAG_BAR_FREE = "<bar-free>";
     static constexpr auto TAG_RAMP_CAPACITY = "<ramp-capacity>";
+    static constexpr auto TAG_RAMP_USED = "<ramp-used>";
+    static constexpr auto TAG_RAMP_FREE = "<ramp-free>";
 
     label_t m_labelmounted;
     label_t m_labelunmounted;
@@ -62,6 +64,8 @@ namespace modules {
     progressbar_t m_barused;
     progressbar_t m_barfree;
     ramp_t m_rampcapacity;
+    ramp_t m_rampused;
+    ramp_t m_rampfree;
 
     vector<string> m_mountpoints;
     vector<fs_mount_t> m_mounts;
