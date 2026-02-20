@@ -203,9 +203,9 @@ namespace modules {
     } else if (tag == TAG_RAMP_CAPACITY) {
       builder->node(m_rampcapacity->get_by_percentage_with_borders(mount->percentage_free, 0, m_perc_used_warn));
     } else if (tag == TAG_RAMP_FREE) {
-      builder->node(m_rampfree->output(mount->percentage_free));
+      builder->node(m_rampfree->get(mount->percentage_free));
     } else if (tag == TAG_RAMP_USED) {
-      builder->node(m_rampused->output(mount->percentage_used));
+      builder->node(m_rampused->get(mount->percentage_used));
     } else if (tag == TAG_LABEL_MOUNTED) {
       replace_tokens(m_labelmounted);
       builder->node(m_labelmounted);
