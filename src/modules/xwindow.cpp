@@ -14,22 +14,22 @@ namespace modules {
    * Wrapper used to update the event mask of the
    * currently active to enable title tracking
    */
-  active_window::active_window(xcb_connection_t* conn, xcb_window_t win) : m_connection(conn), m_window(win) {
+  active_window::active_window(connection& conn, xcb_window_t win) : m_connection(conn), m_window(win) {
     if (m_window != XCB_NONE) {
-      const unsigned int mask{XCB_EVENT_MASK_PROPERTY_CHANGE};
-      xcb_change_window_attributes(m_connection, m_window, XCB_CW_EVENT_MASK, &mask);
+      m_connection.ensure_event_mask(m_window, XCB_EVENT_MASK_PROPERTY_CHANGE);
     }
   }
 
   /**
    * Deconstruct window object
+   *
+   * We deliberately don't reset the window's event mask here: other modules
+   * (e.g. xworkspaces, which tracks WM_HINTS for urgency hints) may also be
+   * subscribed to PropertyNotify events on this window and a blind reset to
+   * XCB_EVENT_MASK_NO_EVENT would silently kill their subscription too
+   * (see #3122).
    */
-  active_window::~active_window() {
-    if (m_window != XCB_NONE) {
-      const unsigned int mask{XCB_EVENT_MASK_NO_EVENT};
-      xcb_change_window_attributes(m_connection, m_window, XCB_CW_EVENT_MASK, &mask);
-    }
-  }
+  active_window::~active_window() {}
 
   /**
    * Check if current window matches passed value
@@ -100,6 +100,13 @@ namespace modules {
       update();
     } else if (evt->atom == _NET_WM_NAME || evt->atom == _NET_WM_VISIBLE_NAME || evt->atom == WM_NAME ||
                evt->atom == WM_CLASS) {
+      // Only react to title-related changes on the window we currently
+      // consider active; other windows may still have PROPERTY_CHANGE in
+      // their event mask (e.g. set up by other modules) and we don't want to
+      // redraw because of changes on windows that are no longer active.
+      if (!m_active || !m_active->match(evt->window)) {
+        return;
+      }
       update();
     } else {
       return;
