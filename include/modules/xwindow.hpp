@@ -14,7 +14,7 @@ class connection;
 namespace modules {
   class active_window : public non_copyable_mixin, public non_movable_mixin {
    public:
-    explicit active_window(xcb_connection_t* conn, xcb_window_t win);
+    explicit active_window(connection& conn, xcb_window_t win);
     ~active_window();
 
     bool match(xcb_window_t win) const;
@@ -23,7 +23,7 @@ namespace modules {
     string class_name() const;
 
    private:
-    xcb_connection_t* m_connection{nullptr};
+    connection& m_connection;
     xcb_window_t m_window{XCB_NONE};
   };
 

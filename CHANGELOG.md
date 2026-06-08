@@ -20,6 +20,12 @@ by [@stringlapse](https://github.com/stringlapse).
 - `internal/pulseaudio`: Volume adjustments now preserve balance instead of volume ratios ([`#3123`](https://github.com/polybar/polybar/issues/3123), [`#3169`](https://github.com/polybar/polybar/pull/3169)) by [`@parmort`](https://github.com/parmort)
 - When the `-r` flag is provided, and RandR reports zero connected active screens, polybar will not restart. This fixes polybar dying on some laptops when the lid is closed. ([`#3078`](https://github.com/polybar/polybar/pull/3078))).
 
+### Fixed
+- `internal/xwindow`: The module would clobber the X11 event mask of the active window on focus changes, which could silently break `internal/xworkspaces`'s urgency hint tracking for that window
+  ([`#3122`](https://github.com/polybar/polybar/issues/3122),
+  [`#3248`](https://github.com/polybar/polybar/pull/3248))
+  by [@FrancisRussell](https://github.com/FrancisRussell).
+
 ## [3.7.2] - 2024-08-17
 ### Fixed
 - `custom/script`: When a script with `tail = true` received multiple lines quickly, only the first would get displayed ([`#3117`](https://github.com/polybar/polybar/issues/3117), [`#3119`](https://github.com/polybar/polybar/pull/3119)) by [@Isak05](https://github.com/Isak05)
