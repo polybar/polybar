@@ -19,16 +19,20 @@ on:
 jobs:
   upload:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Get Version
-        if: ${{ github.event.inputs.tag }} != ''
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_TAG: ${{ github.event.inputs.tag }}
         run: |
-          if [ ${{  github.event_name }} == 'workflow_dispatch' ]; then
+          if [ "$EVENT_NAME" == 'workflow_dispatch' ]; then
             echo "Manual Release Triggered"
-            RELEASE_TAG=${{ github.event.inputs.tag }}
+            RELEASE_TAG="$INPUT_TAG"
           else
             echo "Automatic Release Triggered"
-            RELEASE_TAG=${GITHUB_REF#refs/tags/}
+            RELEASE_TAG="${GITHUB_REF#refs/tags/}"
           fi
           echo "Publishing Version $RELEASE_TAG"
           {
@@ -56,10 +60,12 @@ jobs:
       - name: Get Upload URL
         id: get_upload_url
         uses: actions/github-script@v7
+        env:
+          RELEASE_TAG: ${{ env.RELEASE_TAG }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const tag = '${{ env.RELEASE_TAG }}';
+            const tag = process.env.RELEASE_TAG;
             console.log(`Getting Upload URL for '${tag}'`);
             const release = await github.rest.repos.getReleaseByTag({
               owner: context.repo.owner,
@@ -87,12 +93,16 @@ jobs:
         env:
           # Existing release body, fetched in the get_upload_url step.
           RELEASE_BODY: ${{ env.RELEASE_BODY }}
+          POLYBAR_ARCHIVE: ${{ env.POLYBAR_ARCHIVE }}
+          DOWNLOAD_URL: ${{ steps.upload_archive.outputs.browser_download_url }}
+          SHA256SUM: ${{ env.SHA256SUM }}
+          RELEASE_ID: ${{ env.RELEASE_ID }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const fname = '${{ env.POLYBAR_ARCHIVE }}'
-            const url = '${{ steps.upload_archive.outputs.browser_download_url }}'
-            const hash = '${{ env.SHA256SUM }}'
+            const fname = process.env.POLYBAR_ARCHIVE
+            const url = process.env.DOWNLOAD_URL
+            const hash = process.env.SHA256SUM
             let body = "## Download\n\n"
             body += `[${fname}](${url}) (**sha256**: \`${hash}\`)\n\n`
             body += process.env.RELEASE_BODY;
@@ -100,6 +110,6 @@ jobs:
             const release = await github.rest.repos.updateRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              release_id: '${{ env.RELEASE_ID}}',
+              release_id: process.env.RELEASE_ID,
               body: body
             });
