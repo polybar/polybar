@@ -20,6 +20,9 @@ by [@stringlapse](https://github.com/stringlapse).
 - `internal/pulseaudio`: Volume adjustments now preserve balance instead of volume ratios ([`#3123`](https://github.com/polybar/polybar/issues/3123), [`#3169`](https://github.com/polybar/polybar/pull/3169)) by [`@parmort`](https://github.com/parmort)
 - When the `-r` flag is provided, and RandR reports zero connected active screens, polybar will not restart. This fixes polybar dying on some laptops when the lid is closed. ([`#3078`](https://github.com/polybar/polybar/pull/3078))).
 
+### Fixed
+- `internal/tray`: Tray clients that unmap their own window without clearing `XEMBED_MAPPED` are remapped, instead of leaving a reserved slot that accepts no clicks. Qt applications that hide the tray icon window instead of destroying the tray icon end up in this state. ([`#3253`](https://github.com/polybar/polybar/pull/3253)) by [@ElnuDev](https://github.com/ElnuDev).
+
 ## [3.7.2] - 2024-08-17
 ### Fixed
 - `custom/script`: When a script with `tail = true` received multiple lines quickly, only the first would get displayed ([`#3117`](https://github.com/polybar/polybar/issues/3117), [`#3119`](https://github.com/polybar/polybar/pull/3119)) by [@Isak05](https://github.com/Isak05)

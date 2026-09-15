@@ -746,8 +746,9 @@ void manager::handle(const evt::unmap_notify& evt) {
   if (is_active() && is_embedded(evt->window)) {
     auto client = find_client(evt->window);
 
-    // If we received a notification on the wrapped window, we don't want to do anything.
+    // A notification on the wrapped window only matters if the client unmapped itself.
     if (client->embedder() != evt->window) {
+      client->ensure_client_mapped();
       return;
     }
 

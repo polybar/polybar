@@ -271,6 +271,25 @@ void client::ensure_state() const {
 }
 
 /**
+ * Remap the client window if the application unmapped it itself.
+ *
+ * ensure_state() cannot do this, since m_mapped tracks the wrapper, which is still mapped.
+ */
+void client::ensure_client_mapped() const {
+  if (!should_be_mapped()) {
+    return;
+  }
+
+  m_log.trace("%s: Client unmapped itself while still XEMBED_MAPPED, remapping", name());
+
+  try {
+    m_connection.map_window_checked(client_window());
+  } catch (const std::exception& err) {
+    m_log.trace("%s: Failed to remap client (%s)", name(), err.what());
+  }
+}
+
+/**
  * Configure window position
  */
 void client::set_position(int x, int y) {

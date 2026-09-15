@@ -57,6 +57,7 @@ class client : public non_copyable_mixin, public non_movable_mixin {
   void add_to_save_set() const;
 
   void ensure_state() const;
+  void ensure_client_mapped() const;
   void set_position(int x, int y);
   void configure_notify() const;
 
