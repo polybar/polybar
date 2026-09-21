@@ -103,10 +103,16 @@ void background_manager::on_background_change() {
     it++;
   }
 
-  // if there are no active slices, deactivate
+  /*
+   * if there are no active slices, there is nothing to update.
+   * We can't deactivate here, becouse this is called from event handlers and
+   * detaching erases the sink from the connection's registry while it is still
+   * iterating over it (the loop then advances from the freed node resulting in
+   * a use after free)
+   */
   if (m_slices.empty()) {
-    m_log.trace("background_manager: deactivating because there are no slices to observe");
-    deactivate();
+    m_log.trace("background_manager: no slices to observe");
+    free_resources();
     return;
   }
 
