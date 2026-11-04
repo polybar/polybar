@@ -1,6 +1,8 @@
 #include "x11/extensions/randr.hpp"
 
 #include <algorithm>
+#include <cstdlib>
+#include <memory>
 #include <utility>
 
 #include "components/types.hpp"
@@ -113,12 +115,15 @@ namespace randr_util {
     if (check_monitor_support()) {
 #if WITH_XRANDR_MONITORS
       /* Use C, because XPP does not provide access to output info from monitors. */
-      xcb_generic_error_t* err;
-      auto rrmonitors = xcb_randr_get_monitors_reply(conn, xcb_randr_get_monitors(conn, root, true), &err);
-      if (err != NULL) {
-        free(err);
-      } else {
-        for (auto iter = xcb_randr_get_monitors_monitors_iterator(rrmonitors); iter.rem;
+      xcb_generic_error_t* err = nullptr;
+      /* The replies are owned by unique_ptrs so they are also freed if an exception is thrown while iterating. */
+      std::unique_ptr<xcb_randr_get_monitors_reply_t, decltype(&free)> rrmonitors{
+          xcb_randr_get_monitors_reply(conn, xcb_randr_get_monitors(conn, root, true), &err), &free};
+      std::unique_ptr<xcb_generic_error_t, decltype(&free)> rrerror{err, &free};
+
+      /* A reply can also be NULL without an error if the connection broke, so both have to be checked. */
+      if (rrerror == nullptr && rrmonitors != nullptr) {
+        for (auto iter = xcb_randr_get_monitors_monitors_iterator(rrmonitors.get()); iter.rem;
              xcb_randr_monitor_info_next(&iter)) {
           auto mon = iter.data;
           auto name = conn.get_atom_name(mon->name).name();
@@ -131,7 +136,6 @@ namespace randr_util {
               make_monitor(output, move(name), mon->width, mon->height, mon->x, mon->y, mon->primary));
           found = true;
         }
-        free(rrmonitors);
       }
 #endif
     }

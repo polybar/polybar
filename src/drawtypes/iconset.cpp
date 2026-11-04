@@ -23,14 +23,14 @@ namespace drawtypes {
     // If fuzzy matching is turned on, try that first before returning the fallback.
     if (fuzzy_match) {
       // works by finding the *longest* matching icon to the given workspace id
-      size_t max_size = -1;
+      size_t max_size = 0;
       label_t max_label;
 
-      for (auto const& icon : m_icons) {
-        if (id.find(icon.first) != std::string::npos) {
-          if (icon.first.length() > max_size || !max_label) {
-            max_size = icon.first.length();
-            max_label = icon.second;
+      for (auto const& candidate : m_icons) {
+        if (id.find(candidate.first) != std::string::npos) {
+          if (!max_label || candidate.first.length() > max_size) {
+            max_size = candidate.first.length();
+            max_label = candidate.second;
           }
         }
       }
@@ -40,7 +40,8 @@ namespace drawtypes {
       }
     }
 
-    return m_icons.find(fallback_id)->second;
+    // at() throws if the fallback is missing, instead of dereferencing end() (undefined behavior)
+    return m_icons.at(fallback_id);
   }
 
   iconset::operator bool() {

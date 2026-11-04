@@ -2,6 +2,8 @@
 
 #include <unistd.h>
 
+#include <stdexcept>
+
 #include "drawtypes/label.hpp"
 #include "modules/meta/base.inl"
 
@@ -163,6 +165,12 @@ namespace modules {
   }
 
   void ipc_module::action_hook(const string& data) {
+    if (m_hooks.empty()) {
+      // Also avoids m_hooks.size() - 1 underflowing in the messages below
+      m_log.err("%s: Hook action received '%s', but no hooks are defined.", name(), data);
+      return;
+    }
+
     try {
       int hook = std::stoi(data);
 
@@ -177,6 +185,10 @@ namespace modules {
           "%s: Hook action received '%s' cannot be converted to a valid hook index. Defined hooks goes from 0 to "
           "%zu.",
           name(), data, m_hooks.size() - 1);
+    } catch (const std::out_of_range& err) {
+      // std::stoi throws this if the number does not fit into an int
+      m_log.err("%s: Hook action received '%s' is out of range. Defined hooks goes from 0 to %zu.", name(), data,
+          m_hooks.size() - 1);
     }
   }
 

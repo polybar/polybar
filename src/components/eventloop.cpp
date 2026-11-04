@@ -48,18 +48,26 @@ namespace eventloop {
   }
 
   // WriteRequest {{{
-  WriteRequest::WriteRequest(cb_write&& user_cb, cb_error&& err_cb)
-      : write_callback(std::move(user_cb)), write_err_cb(std::move(err_cb)) {
+  WriteRequest::WriteRequest(std::vector<uint8_t> data, cb_write&& user_cb, cb_error&& err_cb)
+      : data(std::move(data)), write_callback(std::move(user_cb)), write_err_cb(std::move(err_cb)) {
     get()->data = this;
   }
 
-  WriteRequest& WriteRequest::create(cb_write&& user_cb, cb_error&& err_cb) {
-    auto r = std::make_unique<WriteRequest>(std::move(user_cb), std::move(err_cb));
+  WriteRequest& WriteRequest::create(std::vector<uint8_t> data, cb_write&& user_cb, cb_error&& err_cb) {
+    auto r = std::make_unique<WriteRequest>(std::move(data), std::move(user_cb), std::move(err_cb));
     return r->leak(std::move(r));
   }
 
   uv_write_t* WriteRequest::get() {
     return &req;
+  }
+
+  uv_buf_t WriteRequest::buffer() {
+    return uv_buf_init(reinterpret_cast<char*>(data.data()), static_cast<unsigned int>(data.size()));
+  }
+
+  void WriteRequest::discard() {
+    unleak();
   }
 
   void WriteRequest::trigger(int status) {

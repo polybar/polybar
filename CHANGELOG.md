@@ -20,6 +20,18 @@ by [@stringlapse](https://github.com/stringlapse).
 - `internal/pulseaudio`: Volume adjustments now preserve balance instead of volume ratios ([`#3123`](https://github.com/polybar/polybar/issues/3123), [`#3169`](https://github.com/polybar/polybar/pull/3169)) by [`@parmort`](https://github.com/parmort)
 - When the `-r` flag is provided, and RandR reports zero connected active screens, polybar will not restart. This fixes polybar dying on some laptops when the lid is closed. ([`#3078`](https://github.com/polybar/polybar/pull/3078))).
 
+### Fixed
+- IPC: Messages that are written back to a client could read from a buffer that was already freed when the socket was not immediately writable. The data is now owned by the write request.
+- IPC: The message decoder aborted (debug builds) or mis-tracked its state when an empty message was directly followed by more data in the same read.
+- IPC: A rejected `uv_write` call no longer leaks the write request.
+- `custom/ipc`: A hook action with a number that does not fit into an integer, or any hook action on a module without hooks, no longer causes an unhandled exception.
+- `internal/menu`: The `exec` action no longer reads out of bounds if the given level or item does not exist, or the data is malformed.
+- `internal/bspwm`: The `focus` action rejects data without a `<monitor>+<workspace>` separator instead of building a bogus command.
+- `internal/cpu`: Unexpected `/proc/stat` lines no longer cause an out-of-bounds access or an unhandled exception.
+- `internal/network`: Automatic interface detection no longer reads an uninitialized pointer if `getifaddrs` fails, no longer leaks its result if an interface disappears while scanning, and skips such interfaces.
+- randr: The monitor list is freed on all paths, and a failed monitors reply without an error no longer causes a null dereference.
+- Icon sets: A missing fallback icon now throws instead of dereferencing `end()`.
+
 ## [3.7.2] - 2024-08-17
 ### Fixed
 - `custom/script`: When a script with `tail = true` received multiple lines quickly, only the first would get displayed ([`#3117`](https://github.com/polybar/polybar/issues/3117), [`#3119`](https://github.com/polybar/polybar/pull/3119)) by [@Isak05](https://github.com/Isak05)

@@ -459,6 +459,12 @@ namespace modules {
 
   void bspwm_module::action_focus(const string& data) {
     size_t separator{string_util::find_nth(data, 0, "+", 1)};
+
+    if (separator == string::npos) {
+      m_log.err("%s: Malformed data for focus action, expected '<monitor>+<workspace>' (data: '%s')", name(), data);
+      return;
+    }
+
     size_t monitor_n{std::strtoul(data.substr(0, separator).c_str(), nullptr, 10)};
     string workspace_n{data.substr(separator + 1)};
 

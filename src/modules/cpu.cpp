@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <istream>
+#include <stdexcept>
 
 #include "drawtypes/label.hpp"
 #include "drawtypes/progressbar.hpp"
@@ -140,6 +141,14 @@ namespace modules {
 
         auto values = string_util::split(str, ' ');
 
+        // We access up to the steal column (index 8), so a shorter line would be an out-of-bounds access
+        if (values.size() < 9) {
+          m_log.err("Unexpected format in %s, expected at least 9 columns but got %zu (line: '%s')", PATH_CPU_INFO,
+              values.size(), str);
+          m_cputimes.clear();
+          return false;
+        }
+
         m_cputimes.emplace_back(new cpu_time);
         m_cputimes.back()->user = std::stoull(values[1], nullptr, 10);
         m_cputimes.back()->nice = std::stoull(values[2], nullptr, 10);
@@ -151,6 +160,10 @@ namespace modules {
       }
     } catch (const std::ios_base::failure& e) {
       m_log.err("Failed to read CPU values (what: %s)", e.what());
+    } catch (const std::logic_error& e) {
+      // std::stoull throws invalid_argument/out_of_range on values that are not numbers
+      m_log.err("Failed to parse CPU values (what: %s)", e.what());
+      m_cputimes.clear();
     }
 
     return !m_cputimes.empty();

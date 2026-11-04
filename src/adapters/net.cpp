@@ -8,12 +8,15 @@
 #include <net/if.h>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <ifaddrs.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 
 #include <cassert>
 #include <iomanip>
+#include <memory>
+#include <set>
 
 #include "common.hpp"
 #include "settings.hpp"
@@ -96,14 +99,35 @@ namespace net {
   }
 
   std::string find_interface(NetType type) {
-    struct ifaddrs* ifaddrs;
-    getifaddrs(&ifaddrs);
+    struct ifaddrs* raw_ifaddrs = nullptr;
+
+    if (getifaddrs(&raw_ifaddrs) == -1 || raw_ifaddrs == nullptr) {
+      return "";
+    }
+
+    // Frees the list on every return path, including exceptions
+    std::unique_ptr<struct ifaddrs, decltype(&freeifaddrs)> ifaddrs{raw_ifaddrs, &freeifaddrs};
 
     struct ifaddrs* candidate_if = nullptr;
+    // getifaddrs returns one entry per address, so the same interface shows up multiple times
+    std::set<std::string> checked;
 
-    for (struct ifaddrs* i = ifaddrs; i != nullptr; i = i->ifa_next) {
+    for (struct ifaddrs* i = ifaddrs.get(); i != nullptr; i = i->ifa_next) {
       const std::string name{i->ifa_name};
-      const NetType iftype = iface_type(name);
+
+      // The interface flags are the same for all entries of an interface, so each one only has to be checked once
+      if (!checked.insert(name).second) {
+        continue;
+      }
+
+      NetType iftype;
+      try {
+        iftype = iface_type(name);
+      } catch (const system_error&) {
+        // The interface can disappear between listing it and looking it up in /sys, just ignore it.
+        continue;
+      }
+
       if (iftype != type) {
         continue;
       }
@@ -113,12 +137,10 @@ namespace net {
         candidate_if = i;
       }
     }
+
     if (candidate_if) {
-      const std::string name{candidate_if->ifa_name};
-      freeifaddrs(ifaddrs);
-      return name;
+      return std::string{candidate_if->ifa_name};
     }
-    freeifaddrs(ifaddrs);
     return "";
   }
 

@@ -22,7 +22,7 @@ namespace ipc {
   }
 
   void decoder::process_data(const uint8_t* data, size_t size) {
-    m_log.trace("ipc: Received %zd bytes", size);
+    m_log.trace("ipc: Received %zu bytes", size);
 
     size_t buf_pos = 0;
     size_t remain = size;
@@ -39,8 +39,11 @@ namespace ipc {
         /*
          * If an empty message arrives, we need to explicitly trigger this because there is no further data that would
          * call process_msg_data.
+         *
+         * This also has to happen if more data follows the empty message in the same read (e.g. another message).
+         * Otherwise the payload branch below would run with nothing to read and process no bytes.
          */
-        if (remain == 0 && state == state::PAYLOAD && to_read_buf == 0) {
+        if (state == state::PAYLOAD && to_read_buf == 0) {
           ssize_t num_read_data = process_msg_data(data + buf_pos, remain);
           assert(num_read_data == 0);
           (void)num_read_data;
@@ -85,8 +88,8 @@ namespace ipc {
       uint8_t version = header.s.version;
       uint32_t msg_size = header.s.size;
 
-      m_log.trace(
-          "Received full ipc header (magic=%.*s version=%d size=%zd)", MAGIC.size(), header.s.magic, version, msg_size);
+      m_log.trace("Received full ipc header (magic=%.*s version=%d size=%u)", static_cast<int>(MAGIC.size()),
+          header.s.magic, version, msg_size);
 
       if (memcmp(header.s.magic, MAGIC.data(), MAGIC.size()) != 0) {
         throw error("Invalid magic header, expected '" + MAGIC_STR + "', got '" +

@@ -129,13 +129,15 @@ namespace modules {
 
     if (sep == element.npos) {
       m_log.err("%s: Malformed data for exec action (data: '%s')", name(), element);
+      return;
     }
 
     auto level = std::strtoul(element.substr(0, sep).c_str(), nullptr, 10);
     auto item = std::strtoul(element.substr(sep + 1).c_str(), nullptr, 10);
 
     if (level >= m_levels.size() || item >= m_levels[level]->items.size()) {
-      m_log.err("%s: menu-exec-%d-%d doesn't exist (data: '%s')", name(), level, item, element);
+      m_log.err("%s: menu-exec-%lu-%lu doesn't exist (data: '%s')", name(), level, item, element);
+      return;
     }
 
     string exec = m_levels[level]->items[item]->exec;

@@ -94,3 +94,30 @@ TEST_F(DecoderTest, multiple) {
     EXPECT_NO_THROW(dec.on_read(MSG1.data(), MSG1.size()));
   }
 }
+
+/**
+ * An empty message directly followed by more data in the same read must not stall the decoder or trip its asserts.
+ */
+TEST_F(DecoderTest, empty_msg_followed_by_msg) {
+  std::vector<uint8_t> data(MSG2);
+  data.insert(data.end(), MSG1.begin(), MSG1.end());
+
+  {
+    InSequence seq;
+    EXPECT_CALL(cb, cb(0, TYPE_ACTION, vector<uint8_t>(MSG2.begin() + HEADER_SIZE, MSG2.end()))).Times(1);
+    EXPECT_CALL(cb, cb(0, TYPE_ACTION, vector<uint8_t>(MSG1.begin() + HEADER_SIZE, MSG1.end()))).Times(1);
+  }
+
+  EXPECT_NO_THROW(dec.on_read(data.data(), data.size()));
+}
+
+TEST_F(DecoderTest, multiple_empty_msgs_in_one_read) {
+  static constexpr int NUM_MSGS = 5;
+  std::vector<uint8_t> data;
+  for (int i = 0; i < NUM_MSGS; i++) {
+    data.insert(data.end(), MSG2.begin(), MSG2.end());
+  }
+
+  EXPECT_CALL(cb, cb(0, TYPE_ACTION, vector<uint8_t>(MSG2.begin() + HEADER_SIZE, MSG2.end()))).Times(NUM_MSGS);
+  EXPECT_NO_THROW(dec.on_read(data.data(), data.size()));
+}

@@ -2,8 +2,10 @@
 
 #include <uv.h>
 
+#include <cstdint>
 #include <stdexcept>
 #include <utility>
+#include <vector>
 
 #include "common.hpp"
 #include "components/logger.hpp"
@@ -158,11 +160,20 @@ namespace eventloop {
    public:
     using cb_write = cb_void;
 
-    WriteRequest(cb_write&& user_cb, cb_error&& err_cb);
+    /**
+     * The request takes ownership of the data that is being written. libuv only reads the buffer once the socket is
+     * writable, which can be after the caller has returned, so the caller's buffer cannot be relied upon.
+     */
+    WriteRequest(std::vector<uint8_t> data, cb_write&& user_cb, cb_error&& err_cb);
 
-    static WriteRequest& create(cb_write&& user_cb, cb_error&& err_cb);
+    static WriteRequest& create(std::vector<uint8_t> data, cb_write&& user_cb, cb_error&& err_cb);
 
     uv_write_t* get();
+
+    /**
+     * Buffer descriptor pointing at the data owned by this request.
+     */
+    uv_buf_t buffer();
 
     /**
      * Trigger the write callback.
@@ -170,6 +181,14 @@ namespace eventloop {
      * After that, this object is destroyed.
      */
     void trigger(int status);
+
+    /**
+     * Destroy this request without triggering any callbacks.
+     *
+     * Only for use if libuv did not accept the request (uv_write failed), because then no completion callback will
+     * ever run.
+     */
+    void discard();
 
    protected:
     WriteRequest& leak(std::unique_ptr<WriteRequest> h);
@@ -180,6 +199,8 @@ namespace eventloop {
 
    private:
     uv_write_t req{};
+
+    std::vector<uint8_t> data;
 
     cb_write write_callback;
     cb_error write_err_cb;
@@ -344,12 +365,18 @@ namespace eventloop {
     };
 
     void write(const vector<uint8_t>& data, WriteRequest::cb_write&& user_cb = {}, cb_error&& err_cb = {}) {
-      WriteRequest& req = WriteRequest::create(std::move(user_cb), std::move(err_cb));
+      WriteRequest& req = WriteRequest::create(data, std::move(user_cb), std::move(err_cb));
 
-      uv_buf_t buf{(char*)data.data(), data.size()};
+      uv_buf_t buf = req.buffer();
 
-      UV(uv_write, req.get(), this->template get<uv_stream_t>(), &buf, 1,
-          [](uv_write_t* r, int status) { static_cast<WriteRequest*>(r->data)->trigger(status); });
+      try {
+        UV(uv_write, req.get(), this->template get<uv_stream_t>(), &buf, 1,
+            [](uv_write_t* r, int status) { static_cast<WriteRequest*>(r->data)->trigger(status); });
+      } catch (...) {
+        // libuv rejected the request, so the completion callback will never run and nobody else would free it
+        req.discard();
+        throw;
+      }
     }
 
    protected:
