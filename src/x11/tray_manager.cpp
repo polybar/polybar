@@ -421,14 +421,14 @@ void manager::process_docking_request(xcb_window_t win) {
     auto cl =
         make_unique<client>(m_log, m_connection, m_opts.selection_owner, win, m_opts.client_size, m_opts.background);
 
+    cl->update_client_attributes();
+
     try {
       cl->query_xembed();
     } catch (const xpp::x::error::window& err) {
       m_log.err("Failed to query _XEMBED_INFO, removing %s ... (%s)", cl->name(), err.what());
       return;
     }
-
-    cl->update_client_attributes();
 
     cl->reparent();
 
