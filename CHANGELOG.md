@@ -21,7 +21,7 @@ by [@stringlapse](https://github.com/stringlapse).
 - When the `-r` flag is provided, and RandR reports zero connected active screens, polybar will not restart. This fixes polybar dying on some laptops when the lid is closed. ([`#3078`](https://github.com/polybar/polybar/pull/3078))).
 
 ### Fixed
-- `internal/tray`: Show icons that become visible while docking. By [@jesyspa](https://github.com/jesyspa).
+- `internal/tray`: Show icons that become visible while docking ([`#3258`](https://github.com/polybar/polybar/pull/3258)) by [@jesyspa](https://github.com/jesyspa).
 
 ## [3.7.2] - 2024-08-17
 ### Fixed
